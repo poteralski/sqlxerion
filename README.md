@@ -7,7 +7,7 @@ version number: 0.0.1
 Overview
 --------
 
-Legendary SQL-alchemical code capable of turning your code into gold
+> Legendary SQL-alchemical code capable of turning your code into gold
 
 Examples
 --------
