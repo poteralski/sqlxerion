@@ -1,6 +1,8 @@
 import sqlalchemy
+from sqlalchemy.ext.declarative import declarative_base
 
-from . import fields, model, relations
+from sqlxerion.meta import PrimaMateria
+from . import fields, relations
 
 
 class DataBase:
@@ -9,7 +11,7 @@ class DataBase:
     def __init__(self) -> None:
         self.metadata = sqlalchemy.MetaData()
 
-        self.Model = model.xerion_base(self.metadata)
+        self.Model = declarative_base(metaclass=PrimaMateria, metadata=self.metadata)
 
         self.ForeignKey = relations.ForeignKey
         self.ManyToMany = relations.ManyToMany

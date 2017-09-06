@@ -1,8 +1,6 @@
-from sqlalchemy import MetaData
-
 from sqlxerion.extension import DataBase
 
-db = DataBase(MetaData())
+db = DataBase()
 
 
 class User(db.Model):
