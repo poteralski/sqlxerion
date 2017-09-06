@@ -11,7 +11,7 @@ Legendary SQL-alchemical code capable of turning your code into gold
 
 Examples
 --------
-
+##### ForeignKey
 SQLAlchemy code
 ```python
 
@@ -39,14 +39,55 @@ SQLXerion equivalent
 ```python
 class User(Base):
     __tablename__ = 'users'
-    id = fields.IntField(primary_key=True)
+    id = IntField(primary_key=True)
 
 
 class Article(Base):
     __tablename__ = 'diseases'
-    id = fields.IntField(primary_key=True)
+    id = IntField(primary_key=True)
 
-    author = relation.ForeignKey(User)
-    moderator = relationship.ForeignKey(User)
+    author = ForeignKey(User)
+    moderator = ForeignKey(User)
+
+```
+
+##### ManyToMany
+SQLAlchemy code
+```python
+
+article_moderators = db.Table(
+    'article_moderators',
+    db.Column('left_id', db.Integer, db.ForeignKey('users.id')),
+    db.Column('right_id', db.Integer, db.ForeignKey('articles.id'))
+)
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+
+    moderated_articles = relationship("Article",
+                                      secondary='article_moderators')
+
+
+class Article(Base):
+    __tablename__ = 'articles'
+    id = Column(Integer(), primary_key=True)
+
+    moderators = relationship(User, secondary='article_moderators')
+
+```
+
+SQLXerion equivalent
+```python
+class User(Base):
+    __tablename__ = 'users'
+    id = IntField(primary_key=True)
+
+
+class Article(Base):
+    __tablename__ = 'articles'
+    id = IntField(primary_key=True)
+
+    moderators = ManyToMany(User)
 
 ```
