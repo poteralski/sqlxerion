@@ -35,7 +35,18 @@ class Article(Base):
 
 ```
 
-SQLXerion code
+SQLXerion equivalent
 ```python
+class User(Base):
+    __tablename__ = 'users'
+    id = fields.IntField(primary_key=True)
+
+
+class Article(Base):
+    __tablename__ = 'diseases'
+    id = fields.IntField(primary_key=True)
+
+    author = relation.ForeignKey(User)
+    moderator = relationship.ForeignKey(User)
 
 ```
