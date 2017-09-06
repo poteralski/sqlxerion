@@ -20,7 +20,7 @@ class User(Base):
     id = Column(Integer(), primary_key=True)
 
     articles_author = relationship(
-        "Article",primaryjoin='User.id == Article.author_id',
+        "Article", primaryjoin='User.id == Article.author_id',
         back_populates='author'
     )
     articles_moderator = relationship(
@@ -39,7 +39,7 @@ class Article(Base):
         User,
         foreign_keys='[Article.author_id]',
         back_populates='articles_author'
-        )
+    )
 
     moderator_id = Column(Integer, ForeignKey('users.id'))
     moderator = relationship(
