@@ -1,21 +1,24 @@
 import sqlalchemy
 
-from . import fields, metadata, model, relations
+from . import fields, model, relations
 
 
 class DataBase:
     _session = None
 
     def __init__(self) -> None:
-        self.metadata = metadata
-        self.Model = model.BaseModel
+        self.metadata = sqlalchemy.MetaData()
+
+        self.Model = model.xerion_base(self.metadata)
+
         self.ForeignKey = relations.ForeignKey
         self.ManyToMany = relations.ManyToMany
+
         self.BoolField = fields.BoolField
         self.IntField = fields.IntField
         self.StrField = fields.StrField
-        self.ChoiceField = fields.ChoiceField
         self.FloatField = fields.FloatField
+
         self._password_schemes = ''
         self._password_depr_schemes = ''
 
@@ -30,9 +33,10 @@ class DataBase:
         return self._session
 
     def _create_session(self, uri):
-        engine = sqlalchemy.create_engine(uri)
-        self._session = sqlalchemy.orm.session.sessionmaker(bind=engine)()
-        self.metadata.bind = engine
+        self.engine = sqlalchemy.create_engine(uri, echo=True)
+        self.session_maker = sqlalchemy.orm.sessionmaker(bind=self.engine)
+        self._session = sqlalchemy.orm.scoped_session(self.session_maker)
+        self.metadata.bind = self.engine
 
     def close_session(self):
         self.session.close_all()
