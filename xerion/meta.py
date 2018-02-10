@@ -30,7 +30,7 @@ class XerionMeta(DeclarativeMeta):
                         instance.model,
                         secondary=association_table or Table(
                             f'{self.__tablename__}_{key}',
-                            MetaData(),
+                            self.metadata,
                             Column('left_id', Integer, FK(f'{self.__tablename__}.id')),
                             Column('right_id', Integer,
                                    FK(f'{instance_table_name}.id')),
