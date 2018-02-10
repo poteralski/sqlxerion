@@ -19,8 +19,8 @@ class XerionMeta(declarative.DeclarativeMeta):
 
                 def get_relationship(self, instance=instance, key=key,
                                      association_table=association_table):
-                    instance_table_name = get_model(self,
-                                                    instance.model).__tablename__
+                    instance_model = get_model(self, instance.model)
+                    instance_table_name = instance_model.__tablename__
                     return sqla_orm.relationship(
                         instance.model,
                         secondary=association_table or sqla.Table(
@@ -37,7 +37,7 @@ class XerionMeta(declarative.DeclarativeMeta):
                             sqla.PrimaryKeyConstraint(
                                 'left_id',
                                 'right_id',
-                                name=f'{self.__tablename__}_{key}_association_pk'
+                                name=f'{self.__tablename__}_{key}_assoc_pk'
                             )
                         ),
                         **instance.extra
