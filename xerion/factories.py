@@ -34,20 +34,20 @@ def assoc_table_factory(self, instance_table_name, tablename, attr_name):
     )
 
 
-def many_to_many_factory(cls, instance, secondary, secondary_tablename, is_abstract, attr_name):
+def m2m_relationship(model, secondary, **extra):
+    return sqla_orm.relationship(model, secondary, **extra)
+
+
+def many_to_many_factory(cls, instance, secondary,
+                         is_abstract, attr_name):
     """
     This method is responsible for creating required M2M objects.
     """
     return declarative.declared_attr(
         lambda self, instance=instance, secondary=secondary:
-        sqla_orm.relationship(
+        m2m_relationship(
             instance.model,
-            secondary=secondary or assoc_table_factory(
-                self,
-                get_model(self, instance.model).__tablename__,
-                secondary_tablename,
-                attr_name
-            ),
+            secondary=secondary,
             **instance.extra
         )
     )
@@ -65,7 +65,7 @@ def foreign_key_column_factory(model, nullable, primary_key, extra):
     )
 
 
-def foreign_key_rel_factory(model,  nullable, primary_key, extra):
+def foreign_key_rel_factory(model, nullable, primary_key, extra):
     return declarative.declared_attr(
         lambda self, model=model, extra=extra:
         sqla_orm.relationship(

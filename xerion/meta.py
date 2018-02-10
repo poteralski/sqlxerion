@@ -1,5 +1,4 @@
 from sqlalchemy.ext import declarative
-from sqlalchemy import orm as sqla_orm
 from . import fields, relationships, utils, factories
 
 
@@ -18,21 +17,30 @@ class XerionMeta(declarative.DeclarativeMeta):
         for attr_name, instance in attr_dict.items():
 
             if isinstance(instance, relationships.ManyToMany):
-                secondary_tablename = f'{cls.__tablename__}_{attr_name}'
-
+                secondary = instance.extra.pop(
+                    'secondary',
+                    factories.assoc_table_factory(
+                        cls,
+                        utils.get_model(cls, instance.model).__tablename__,
+                        f'{cls.__tablename__}_{attr_name}',
+                        attr_name
+                    )
+                )
                 if not is_abstract:
                     # create backref if is not abstract
                     setattr(
                         utils.get_model(cls, instance.model),
                         instance.extra.pop('backref', cls.__tablename__),
-                        sqla_orm.relationship(cls, secondary=secondary_tablename)
+                        factories.m2m_relationship(
+                            cls,
+                            secondary=secondary
+                        )
                     )
 
                 new_attrs[attr_name] = factories.many_to_many_factory(
                     cls,
                     instance,
-                    instance.extra.pop('secondary', None),
-                    secondary_tablename,
+                    secondary,
                     is_abstract,
                     attr_name
                 )
@@ -43,7 +51,8 @@ class XerionMeta(declarative.DeclarativeMeta):
                     instance.nullable, instance.primary_key,
                     instance.extra
                 )
-                new_attrs[f'{attr_name}_id'] = factories.foreign_key_column_factory(
+                new_attrs[
+                    f'{attr_name}_id'] = factories.foreign_key_column_factory(
                     instance.model,
                     instance.nullable, instance.primary_key,
                     instance.extra
