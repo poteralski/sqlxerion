@@ -24,9 +24,17 @@ class XerionMeta(declarative.DeclarativeMeta):
                                                             attr_name)
 
             elif isinstance(instance, relationships.ForeignKey):
-                foreign_key_factory(instance, attr_name, new_attrs)
+                foreign_key_factory(
+                    instance.model, attr_name, new_attrs,
+                    instance.nullable, instance.primary_key,
+                    instance.extra
+                )
 
             elif isinstance(instance, fields.Field):
-                new_attrs[attr_name] = fields_factory(instance)
+                new_attrs[attr_name] = fields_factory(
+                    instance.column_class,
+                    instance.args,
+                    instance.kwargs
+                )
 
         return new_attrs
