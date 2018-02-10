@@ -62,8 +62,8 @@ def many_to_many_factory(cls, instance, is_abstract, attr_name):
     return declarative.declared_attr(get_relationship)
 
 
-def foreign_key_factory(model, attr_name, new_attrs, nullable, primary_key, extra):
-    new_attrs[f'{attr_name}_id'] = declarative.declared_attr(
+def foreign_key_column_factory(model, nullable, primary_key, extra):
+    return declarative.declared_attr(
         lambda self, model=model, nullable=nullable, primary_key=primary_key:
         sqla.Column(
             sqla.Integer,
@@ -72,7 +72,10 @@ def foreign_key_factory(model, attr_name, new_attrs, nullable, primary_key, extr
             primary_key=primary_key
         )
     )
-    new_attrs[attr_name] = declarative.declared_attr(
+
+
+def foreign_key_rel_factory(model,  nullable, primary_key, extra):
+    return declarative.declared_attr(
         lambda self, model=model, extra=extra:
         sqla_orm.relationship(
             model,

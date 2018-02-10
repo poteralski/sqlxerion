@@ -1,7 +1,7 @@
 from sqlalchemy.ext import declarative
 
-from xerion.factories import many_to_many_factory, foreign_key_factory, \
-    fields_factory
+from xerion.factories import many_to_many_factory, fields_factory, \
+    foreign_key_rel_factory, foreign_key_column_factory
 from . import fields, relationships
 
 
@@ -24,8 +24,13 @@ class XerionMeta(declarative.DeclarativeMeta):
                                                             attr_name)
 
             elif isinstance(instance, relationships.ForeignKey):
-                foreign_key_factory(
-                    instance.model, attr_name, new_attrs,
+                new_attrs[attr_name] = foreign_key_rel_factory(
+                    instance.model,
+                    instance.nullable, instance.primary_key,
+                    instance.extra
+                )
+                new_attrs[f'{attr_name}_id'] = foreign_key_column_factory(
+                    instance.model,
                     instance.nullable, instance.primary_key,
                     instance.extra
                 )
