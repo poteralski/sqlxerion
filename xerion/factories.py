@@ -31,22 +31,6 @@ def assoc_table_factory(self, instance_table_name, tablename, attr_name):
     )
 
 
-def foreign_key_rel_factory(model, extra):
-    return sqla_orm.relationship(
-        model,
-        **extra
-    )
-
-
-def foreign_key_column_factory(instance_table_name, nullable, primary_key):
-    return sqla.Column(
-        sqla.Integer,
-        sqla.ForeignKey(f'{instance_table_name}.id'),
-        nullable=nullable,
-        primary_key=primary_key
-    )
-
-
 def many_to_many_factory(cls, instance, is_abstract, attr_name):
     """
     This method should be responsible for creating required M2M Objects
@@ -81,12 +65,17 @@ def many_to_many_factory(cls, instance, is_abstract, attr_name):
 def foreign_key_factory(model, attr_name, new_attrs, nullable, primary_key, extra):
     new_attrs[f'{attr_name}_id'] = declarative.declared_attr(
         lambda self, model=model, nullable=nullable, primary_key=primary_key:
-        foreign_key_column_factory(
-            get_model(self, model).__tablename__,
-            nullable, primary_key
+        sqla.Column(
+            sqla.Integer,
+            sqla.ForeignKey(f'{get_model(self, model).__tablename__}.id'),
+            nullable=nullable,
+            primary_key=primary_key
         )
     )
     new_attrs[attr_name] = declarative.declared_attr(
         lambda self, model=model, extra=extra:
-        foreign_key_rel_factory(model, extra)
+        sqla_orm.relationship(
+            model,
+            **extra
+        )
     )
