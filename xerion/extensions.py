@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, orm
 
-from . import fields, metadata, model
+from . import fields, metadata, model, relationships
 
 
 class DataBase:
@@ -13,8 +13,8 @@ class DataBase:
     def __init__(self) -> None:
         self.metadata = metadata
         self.Model = model.BaseModel
-        self.ForeignKey = fields.ForeignKey
-        self.ManyToMany = fields.ManyToMany
+        self.ForeignKey = relationships.ForeignKey
+        self.ManyToMany = relationships.ManyToMany
         self.BoolField = fields.BoolField
         self.IntField = fields.IntField
         self.StrField = fields.StrField

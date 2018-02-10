@@ -1,6 +1,7 @@
-import pytest
-import xerion
+from xerion.extensions import DataBase
+from pytest import fixture
 
-@pytest.fixture
-def db():
-    return xerion.extensions.DataBase()
+
+@fixture
+def db() -> DataBase:
+    return DataBase()
