@@ -1,18 +1,21 @@
-from sqlalchemy import create_engine, orm
+from sqlalchemy import create_engine, orm, MetaData
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session
 
-from . import fields, metadata, model, relationships
+from . import fields, meta, relationships
 
 
 class DataBase:
-    _session = None
+    _session: Session = None
 
     @property
-    def session(self):
+    def session(self) -> Session:
         return self._session
 
-    def __init__(self) -> None:
-        self.metadata = metadata
-        self.Model = model.BaseModel
+    def __init__(self, metadata=None) -> None:
+        self.metadata = metadata or MetaData()
+        self.Model = declarative_base(metaclass=meta.XerionMeta,
+                                      metadata=self.metadata)
         self.ForeignKey = relationships.ForeignKey
         self.ManyToMany = relationships.ManyToMany
         self.BoolField = fields.BoolField
@@ -25,6 +28,7 @@ class DataBase:
 
     def _create_session(self, app):
         self._engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
-        self._session_factory = orm.sessionmaker(bind=self._engine, autoflush=False)
+        self._session_factory = orm.sessionmaker(bind=self._engine,
+                                                 autoflush=False)
         self._session = self._session_factory()
         self.metadata.bind = self._engine

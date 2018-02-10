@@ -1,5 +1,6 @@
 from sqlalchemy.ext.declarative import DeclarativeMeta, declared_attr
-from sqlalchemy import Column, Integer, Table, PrimaryKeyConstraint, ForeignKey as FK
+from sqlalchemy import Column, Integer, Table, PrimaryKeyConstraint, \
+    ForeignKey as FK, MetaData
 from sqlalchemy.orm import relationship
 
 from . import fields, relationships
@@ -29,7 +30,7 @@ class XerionMeta(DeclarativeMeta):
                         instance.model,
                         secondary=association_table or Table(
                             f'{self.__tablename__}_{key}',
-                            metadata,
+                            MetaData(),
                             Column('left_id', Integer, FK(f'{self.__tablename__}.id')),
                             Column('right_id', Integer,
                                    FK(f'{instance_table_name}.id')),
