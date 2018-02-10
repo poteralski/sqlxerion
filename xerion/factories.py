@@ -38,17 +38,6 @@ def many_to_many_factory(cls, instance, secondary, secondary_tablename, is_abstr
     """
     This method is responsible for creating required M2M objects.
     """
-    secondary = instance.extra.pop('secondary', None)
-    secondary_tablename = f'{cls.__tablename__}_{attr_name}'
-
-    if not is_abstract:
-        # create backref if is not abstract
-        setattr(
-            get_model(cls, instance.model),
-            instance.extra.pop('backref', cls.__tablename__),
-            sqla_orm.relationship(cls, secondary=secondary_tablename)
-        )
-
     return declarative.declared_attr(
         lambda self, instance=instance, secondary=secondary:
         sqla_orm.relationship(

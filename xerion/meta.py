@@ -1,8 +1,6 @@
 from sqlalchemy.ext import declarative
-
-from xerion.factories import many_to_many_factory, fields_factory, \
-    foreign_key_rel_factory, foreign_key_column_factory
-from . import fields, relationships
+from sqlalchemy import orm as sqla_orm
+from . import fields, relationships, utils, factories
 
 
 class XerionMeta(declarative.DeclarativeMeta):
@@ -18,30 +16,41 @@ class XerionMeta(declarative.DeclarativeMeta):
         new_attrs = dict()
 
         for attr_name, instance in attr_dict.items():
+
             if isinstance(instance, relationships.ManyToMany):
-                new_attrs[attr_name] = many_to_many_factory(
+                secondary_tablename = f'{cls.__tablename__}_{attr_name}'
+
+                if not is_abstract:
+                    # create backref if is not abstract
+                    setattr(
+                        utils.get_model(cls, instance.model),
+                        instance.extra.pop('backref', cls.__tablename__),
+                        sqla_orm.relationship(cls, secondary=secondary_tablename)
+                    )
+
+                new_attrs[attr_name] = factories.many_to_many_factory(
                     cls,
                     instance,
                     instance.extra.pop('secondary', None),
-                    f'{cls.__tablename__}_{attr_name}',
+                    secondary_tablename,
                     is_abstract,
                     attr_name
                 )
 
             elif isinstance(instance, relationships.ForeignKey):
-                new_attrs[attr_name] = foreign_key_rel_factory(
+                new_attrs[attr_name] = factories.foreign_key_rel_factory(
                     instance.model,
                     instance.nullable, instance.primary_key,
                     instance.extra
                 )
-                new_attrs[f'{attr_name}_id'] = foreign_key_column_factory(
+                new_attrs[f'{attr_name}_id'] = factories.foreign_key_column_factory(
                     instance.model,
                     instance.nullable, instance.primary_key,
                     instance.extra
                 )
 
             elif isinstance(instance, fields.Field):
-                new_attrs[attr_name] = fields_factory(
+                new_attrs[attr_name] = factories.fields_factory(
                     instance.column_class,
                     instance.args,
                     instance.kwargs
