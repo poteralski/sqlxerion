@@ -2,7 +2,7 @@ from sqlalchemy.ext import declarative
 from sqlalchemy import orm as sqla_orm
 import sqlalchemy as sqla
 
-from xerion.utils import get_model
+from .utils import get_model
 from . import fields, relationships
 
 
