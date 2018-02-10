@@ -34,18 +34,17 @@ def assoc_table_factory(self, instance_table_name, tablename, attr_name):
     )
 
 
-def m2m_relationship(model, secondary, **extra):
-    return sqla_orm.relationship(model, secondary, **extra)
+def relationship(model, secondary=None, **kwargs):
+    return sqla_orm.relationship(model, secondary=secondary, **kwargs)
 
 
-def many_to_many_factory(cls, instance, secondary,
-                         is_abstract, attr_name):
+def many_to_many_factory(instance, secondary, attr_name):
     """
     This method is responsible for creating required M2M objects.
     """
     return declarative.declared_attr(
         lambda self, instance=instance, secondary=secondary:
-        m2m_relationship(
+        relationship(
             instance.model,
             secondary=secondary,
             **instance.extra

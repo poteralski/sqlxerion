@@ -13,36 +13,15 @@ class XerionMeta(declarative.DeclarativeMeta):
 
     def create_from_base(cls, attr_dict, is_abstract):
         for attr_name, instance in attr_dict.items():
+            secondary = None
 
             if isinstance(instance, relationships.ManyToMany):
-                secondary = instance.extra.pop(
-                    'secondary',
-                    factories.assoc_table_factory(
-                        cls,
-                        utils.get_model(cls, instance.model).__tablename__,
-                        f'{cls.__tablename__}_{attr_name}',
-                        attr_name
-                    )
-                )
-                if not is_abstract:
-                    # create backref if is not abstract
-                    setattr(
-                        utils.get_model(cls, instance.model),
-                        instance.extra.pop('backref', cls.__tablename__),
-                        factories.m2m_relationship(
-                            cls,
-                            secondary=secondary
-                        )
-                    )
-
+                secondary = cls.resolve_secondary(attr_name, instance)
                 yield attr_name, factories.many_to_many_factory(
-                    cls,
                     instance,
                     secondary,
-                    is_abstract,
                     attr_name
                 )
-
             elif isinstance(instance, relationships.ForeignKey):
                 yield attr_name, factories.foreign_key_rel_factory(
                     instance.model,
@@ -61,4 +40,24 @@ class XerionMeta(declarative.DeclarativeMeta):
                     instance.args,
                     instance.kwargs
                 )
+
+            if not is_abstract and secondary is not None:
+                # create backref if is not abstract
+                # fix also for o2m
+                setattr(
+                    utils.get_model(cls, instance.model),
+                    instance.extra.pop('backref', cls.__tablename__),
+                    factories.relationship( cls, secondary=secondary)
+                )
+
+    def resolve_secondary(cls, attr_name, instance):
+        return instance.extra.pop(
+            'secondary',
+            factories.assoc_table_factory(
+                cls,
+                utils.get_model(cls, instance.model).__tablename__,
+                f'{cls.__tablename__}_{attr_name}',
+                attr_name
+            )
+        )
 
