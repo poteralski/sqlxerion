@@ -19,9 +19,14 @@ class XerionMeta(declarative.DeclarativeMeta):
 
         for attr_name, instance in attr_dict.items():
             if isinstance(instance, relationships.ManyToMany):
-                new_attrs[attr_name] = many_to_many_factory(cls, instance,
-                                                            is_abstract,
-                                                            attr_name)
+                new_attrs[attr_name] = many_to_many_factory(
+                    cls,
+                    instance,
+                    instance.extra.pop('secondary', None),
+                    f'{cls.__tablename__}_{attr_name}',
+                    is_abstract,
+                    attr_name
+                )
 
             elif isinstance(instance, relationships.ForeignKey):
                 new_attrs[attr_name] = foreign_key_rel_factory(

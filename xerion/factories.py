@@ -5,12 +5,15 @@ from .utils import get_model
 
 
 def fields_factory(column_class, args, kwargs):
+    """
+    This method is responsible for creating columns.
+    """
     return sqla.Column(column_class(*args), **kwargs)
 
 
 def assoc_table_factory(self, instance_table_name, tablename, attr_name):
     """
-    This method should be responsible for creating association tables
+    This method is responsible for creating association tables.
     """
     return sqla.Table(
         tablename,
@@ -31,26 +34,12 @@ def assoc_table_factory(self, instance_table_name, tablename, attr_name):
     )
 
 
-def many_to_many_factory(cls, instance, is_abstract, attr_name):
+def many_to_many_factory(cls, instance, secondary, secondary_tablename, is_abstract, attr_name):
     """
-    This method should be responsible for creating required M2M Objects
+    This method is responsible for creating required M2M objects.
     """
     secondary = instance.extra.pop('secondary', None)
     secondary_tablename = f'{cls.__tablename__}_{attr_name}'
-
-    def get_relationship(self, instance=instance, secondary=secondary):
-        instance_model = get_model(self, instance.model)
-        instance_table_name = instance_model.__tablename__
-        if not secondary:
-            secondary = assoc_table_factory(self,
-                                            instance_table_name,
-                                            secondary_tablename,
-                                            attr_name)
-        return sqla_orm.relationship(
-            instance.model,
-            secondary=secondary,
-            **instance.extra
-        )
 
     if not is_abstract:
         # create backref if is not abstract
@@ -59,7 +48,20 @@ def many_to_many_factory(cls, instance, is_abstract, attr_name):
             instance.extra.pop('backref', cls.__tablename__),
             sqla_orm.relationship(cls, secondary=secondary_tablename)
         )
-    return declarative.declared_attr(get_relationship)
+
+    return declarative.declared_attr(
+        lambda self, instance=instance, secondary=secondary:
+        sqla_orm.relationship(
+            instance.model,
+            secondary=secondary or assoc_table_factory(
+                self,
+                get_model(self, instance.model).__tablename__,
+                secondary_tablename,
+                attr_name
+            ),
+            **instance.extra
+        )
+    )
 
 
 def foreign_key_column_factory(model, nullable, primary_key, extra):
