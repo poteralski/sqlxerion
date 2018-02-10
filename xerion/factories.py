@@ -12,39 +12,51 @@ def fields_factory(instance):
     )
 
 
-def many_to_many_factory(cls, instance, is_abstract, attr_name):
-    assoc_table = instance.extra.pop('secondary', None)
+def assoc_table_factory(self, instance_table_name, secondary_tablename,
+                        attr_name):
+    return sqla.Table(
+        secondary_tablename,
+        self.metadata,
+        sqla.Column(
+            'left_id', sqla.Integer,
+            sqla.ForeignKey(f'{self.__tablename__}.id')),
+        sqla.Column(
+            'right_id',
+            sqla.Integer,
+            sqla.ForeignKey(f'{instance_table_name}.id')
+        ),
+        sqla.PrimaryKeyConstraint(
+            'left_id',
+            'right_id',
+            name=f'{self.__tablename__}_{attr_name}_assoc_pk'
+        )
+    )
 
-    def get_relationship(self, instance=instance, assoc_table=assoc_table):
+
+def many_to_many_factory(cls, instance, is_abstract, attr_name):
+    secondary = instance.extra.pop('secondary', None)
+    secondary_tablename = f'{cls.__tablename__}_{attr_name}'
+
+    def get_relationship(self, instance=instance, secondary=secondary):
         instance_model = get_model(self, instance.model)
         instance_table_name = instance_model.__tablename__
+        if not secondary:
+            secondary = assoc_table_factory(self,
+                                            instance_table_name,
+                                            secondary_tablename,
+                                            attr_name)
         return sqla_orm.relationship(
             instance.model,
-            secondary=assoc_table or sqla.Table(
-                f'{self.__tablename__}_{attr_name}',
-                self.metadata,
-                sqla.Column(
-                    'left_id', sqla.Integer,
-                    sqla.ForeignKey(f'{self.__tablename__}.id')),
-                sqla.Column(
-                    'right_id',
-                    sqla.Integer,
-                    sqla.ForeignKey(f'{instance_table_name}.id')
-                ),
-                sqla.PrimaryKeyConstraint(
-                    'left_id',
-                    'right_id',
-                    name=f'{self.__tablename__}_{attr_name}_assoc_pk'
-                )
-            ),
+            secondary=secondary,
             **instance.extra
         )
 
     if not is_abstract:
+        # create backref if is not abstract
         setattr(
             get_model(cls, instance.model),
             instance.extra.pop('backref', cls.__tablename__),
-            sqla_orm.relationship(cls, secondary=f'{cls.__tablename__}_{attr_name}')
+            sqla_orm.relationship(cls, secondary=secondary_tablename)
         )
     return declarative.declared_attr(get_relationship)
 
