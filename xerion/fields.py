@@ -1,7 +1,9 @@
 from sqlalchemy import Boolean, String, Float, Integer
 
+from .base import BaseXerion
 
-class Field:
+
+class Field(BaseXerion):
     column_class = None
 
     def __init__(self, *args, **kwargs) -> None:

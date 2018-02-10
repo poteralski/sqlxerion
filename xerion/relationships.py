@@ -1,5 +1,9 @@
-class Relationship:
-    def __init__(self, model, *args, nullable=True, primary_key=False, **kwargs) -> None:
+from .base import BaseXerion
+
+
+class Relationship(BaseXerion):
+    def __init__(self, model, *args, nullable=True, primary_key=False,
+                 **kwargs) -> None:
         self.model = model
         self.extra = kwargs or {}
         self.nullable = nullable
