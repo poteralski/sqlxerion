@@ -1,2 +1,4 @@
 SQLAlchemy
 pytest
+sphinx
+sphinx-autobuild
